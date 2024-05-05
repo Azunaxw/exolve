@@ -8,6 +8,22 @@ See the full license notice in exolve-m.js.
 Version: Exolve v1.56 November 19, 2023
 */
 
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
+
+:root { /* Catppuccin Mocha Colours / Google Fonts (Placeholder) */
+  --text: #e0f1fb;
+  --accent-1: #c2e2f7;
+  --accent: #83c5ed;
+  --bg-1: #21313b;
+  --bg-0: #12191e;
+
+
+  --main-font: 'Onest', sans-serif;
+
+  font-family: var(--main-font) !important;
+  color: var(--text) !important;
+}
+
 @media (max-width: 500px) {
   body {
     margin: 4px;

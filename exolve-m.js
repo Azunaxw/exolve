@@ -273,8 +273,8 @@ function Exolve(puzzleSpec,
     'small-button': 'inherit',
     'small-button-hover': 'lightpink',
     'small-button-text': 'darkgreen',
-    'solution': 'dodgerblue',
-    'solved': 'dodgerblue',
+    'solution': 'var(--accent)',
+    'solved': 'var(--accent)',
   };
   this.darkColorScheme = {
     ...this.lightColorScheme,
@@ -287,7 +287,7 @@ function Exolve(puzzleSpec,
     'small-button-text': 'lightgreen',
 
   }
-  this.colorScheme = this.lightColorScheme;
+  this.colorScheme = this.darkColorScheme;
 
   this.nextLine = 0;
   this.sectionLines = {};
