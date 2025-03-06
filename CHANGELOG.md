@@ -1,5 +1,269 @@
 # Changelog
 
+### Version: Exolve v1.61: February 22, 2025
+
+- Allow parameters in cell-decorators, so that we can vary a decorator
+  depending upon which cell it is in. The mechanism is to allow `$1`,
+  `$2`, etc. to be present anywhere in the SVG specs for a decorator. In
+  the `exolve-grid` section, when a decorator is placed in a cell, values
+  are supplied for the parameters, using colon-prefixed suffixes. E.g.:
+```
+  exolve-cell-decorator: <text x="2" y="15" style="color:$1">$2</text>
+  exolve-grid:
+    0{1:green:*} . ...
+```
+- Spaces get stripped from parameter values. Parameter values cannot
+  contain any of `:` or ','.
+- If the dollar symbol itself is needed in the SVG specs, it needs to be
+  indicated using `$0`.
+- Bug fix: `addCellText()` was using the next cell to compute some
+  coordinates, but this doesn't work with non-standard grid-spacing. Fixed.
+  Also updated the documentation to say that parameterized
+  `exolve-cell-decorator` is the preferred way to add text decorations to cells.
+- exolve-from-text.js: Found published grids in the wild that contain
+  the 2x2-all-white-cells pattern that I was rejecting outright. Modify
+  the algo to first try with such 2x2s ruled out, but if that fails, then
+  try everything again, allowing the 2x2. Also relax maxToBlacken to 6
+  from 5. Finally, add a sorter to sort the results if there are multiple
+  results, using some heuristics (loweset num-unchecked-pairs +
+  max-horiz-black-span + max-vert-black-span + num2x2Whiteo).
+- In exolve-player.html, delete old Exolve puzzles for multiple-matching
+  choices inferred from text.
+- Add a test for autogrid that contains a 2x2-all-white block.
+
+### Version: Exolve v1.60: February 18, 2025
+
+- Add support for non-standard cell shapes via `exolve-shaped-cell`, which
+  specifies the cell shape using SVG and also indicates where the cell label
+  (if any) should be placed. In the grid, a cell can be marked to have
+  shape #k (k = 1, 2, ...) by suffixing it with `[k]`. It can also be moved
+  to a desired `(x,y)` instead of its implied position, by using the suffix
+  `[k,x,y]`. Shaped cells are assumed to be disconnected from all their
+  neighbours and can only be included in `nodir` lights.
+- Shaped cells typically need to be marked with bars/lines/curves to "block
+  them off" in certain directions. We add the notion of `exolve-cell-decorator`
+  that can be used to add arbitrary SVG decoration to any cell. The decorator
+  is specified by listing one or more SVG element specs, optionally prefixed
+  by the word "non-clickable" if the separator does not naturally belong to
+  the cell it is in (and hence clicking it should not activate that cell).
+- In the grid, a cell can be marked to contain separators numbered k1, k2, ..
+  (1-based) by suffixing it with `{k1,k2,...}`.
+- To help with arrow-key-navigation in grids with shaped cells, we add this
+  small tweak: if there is no light cell in the direction of the arrow, but
+  there is a light cell immediately diagonally (on either side), then we
+  navigate to that cell.
+- Add `exolve-grid-spacing` and `exolve-grid-bounds` to help with creating
+  grids with shaped cells. Overriding spacings is useful for shapes such
+  as diamonds and hexagons. Overriding bounds is useful when cells are
+  placed arbitrarily (not along a grid).
+- Update README.md with details on all the above.
+
+### Minor Version: Exolve v1.59.4: January 29, 2025
+
+- If in-clue solutions are provided, but not in-grid, then try to copy
+  the in-clue solutions to the grid.
+- Use the above in `exolve-from-text.js` to enable auto-inferring grids
+  *with* solutions if any clue text past the enum contain the solution
+  in square brackets.
+- Add a simple mechanism to augment clue texts (parsed by `exolve-from-text.js`
+  with sections containing solutions (instead of Exolve's square-brackets
+  convention, which may get tedious to create):
+```
+  Across solution[s][:]
+  1 ...
+  ...
+  Down solution[s][:]
+  1 ...
+  ...
+```
+- The above format is case-insensitive. The word "solution" must appear
+  either as a standalone-heading, or as part of the "Across/Down solution"
+  heading.
+- Similarly, annotations can be provided using similar sections (just replace
+  "solution" above with "annotation". Theses solutions/annotations sections
+  can only appear after the clues.
+
+### Minor Version: Exolve v1.59.3: January 8, 2025
+
+- Add some more fields to the list of expected ones, as we want
+  to make sure that these fields are always present in Exolve
+  puzzle structures.
+
+### Minor Version: Exolve v1.59.2: December 30, 2024
+
+- When parsing, if "#" is preceded by a non-space char, then do not
+  treat it as a comment marker. Update test-15x15-unsolved.html to
+  have examples of when # is and isn't treated as a comment marker.
+
+### Minor Version: Exolve v1.59.1: December 26, 2024
+
+- Re-add the getCellsEntry() function that was deleted by the last
+  version (it is used by Webifi).
+- Add getCellsEntry() to the list of expected functions in the test.
+
+### Version: Exolve v1.59: December 22, 2024
+
+- Add support for alternative solutions:
+- `exolve-alternatives: <cell>:<letter>` says that `<letter>` is an
+  alternative solution for the cell identified by `<cell>`.
+- We disallow specifying the same cell in more than one `exolve-alternatives`
+  section. The reason is to avoid the possibility of puzzles where the solver
+  may reach a dead-end conflict in choices from two groups. Dealing with such
+  conflicts would have required adding code complexity as well as user interface
+  complexity.
+- The above way of specifying alternatives means that you cannot specify more
+  than one alternative for a cell.
+- Revealed in-clue solutions will include all possible solutions for a clue.
+  The solutions where some `exolve-alternatives` groups are used will be
+  shown with a superscript that is a comma-separated list of all group numbers
+  used in crafting that alternative.
+- We disallow using `exolve-alternatives` when there ar diagramless cells or
+  when any cell does not have a solution. We disallow more than 3 distinct groups
+  of alternatives within any single clue.
+- Bug-fix: rebus cells were not working with digits or special chars.
+- Fix documentation for Spacebar semantics in diagramless cells. It does *not*
+  toggle the addition of a block, it only adds (deletion can be done with
+  backspace/delete key).
+
+### Minor Version: Exolve v1.58.8: December 16, 2024
+
+- Fix the Enter keyboard shortcut to switch directions.
+
+### Minor Version: Exolve v1.58.7: December 11, 2024
+
+- 'Check this' and 'Check all!' used to behave like 'Reveal this' and
+  'Reveal all!' respectively if they found no mistakes: they would reveal
+  any clue annos available. This was not intuitive and could be an unnecessary
+  spoiler. Removed this behaviour (solvers can always click explicity on
+  'Reveal this' and 'Reveal all!' if they want to).
+- When showing a warning (mismatched enum or missing clue, currently), save
+  the options that can be used to get rid of these warnings, in a Exolve
+  member array (optionsForWarningFixes).
+- In exolve-player, do not just always use options to ignore warnings. Show
+  the warnings by default. For the "dismiss" X button, override the hover-text
+  to say this:
+    - Click to dismiss warnings persistently (appropriate options
+      will be added to Exolve specs for this crossword)
+  And if the user does click to dismiss, then save the needed options in
+  the Exolve specs so that the warning do not reappear the next time the user
+  reloads. If the user copies specs from the player, these options to ignore
+  will or won't be there in the specs depending on whether the user has not
+  dismissed or dismissed the warning.
+
+### Minor Version: Exolve v1.58.6: September 9, 2024
+
+- Deal with a clue-parsing corner case: Eg.:
+```
+Across
+...
+26, 26 Some clue (5,5)
+```
+  Here, the second 26 now correctly gets interpreted as 26D.
+
+### Minor Version: Exolve v1.58.5: August 1, 2024
+
+- Tweak to the colour-only-cell-bottom option: remove the small 2 pixel
+  gap around the bar, and increase its opacity slighlty.
+- Update version numbers in test files.
+
+### Minor Version: Exolve v1.58.4: July 29, 2024
+
+- Add `exolve-option: colour-only-cell-bottom`. This is applicable to
+  cells coloured with both `exolve-colour` and `exolve-nina`. It makes
+  exolve colour only a bar at the bottom of the cell, instead of colouring
+  the whole cell. This option can be useful for creating print-outs, as
+  overlaid colours tend to blur the printed text in the cell. This option
+  is ignored in 3d, for now (a bit too much more trig needs to be thought
+  through :-)).
+
+### Minor Version: Exolve v1.58.3: July 20, 2024
+
+- Add a "force-grid-scale" print setting.
+
+### Minor Version: Exolve v1.58.2: July 19, 2024
+
+- Rename "urls-as-qrcodes\*" and "urls-to-qrcodes\*" to "url-qrcodes\*"
+- Make the url-qrcodes heading "Links" customizable.
+- Add more left-padding for url-qrcode images.
+
+### Minor Version: Exolve v1.58.1: July 15, 2024
+
+- Add a printing option to convert URLs in the Explanations section
+  to QR codes. The option is only shown if there are any links in
+  the Explanations section.
+
+### Version: Exolve v1.58: July 10, 2024
+
+- Several changes to printing and printing options. Add a prominent
+  menu in the print settings that lets you print:
+  - Grid and clues
+  - Only grid
+  - Only clues
+  My motivation is to create PDFs that I can stitch together to create
+  a book of crosswords, but hopefully others will find other uses as well.
+- A couple of printing options go away. I do not think anyone used them:
+  printing a page-break agter the grid (never really wored on most
+  platforms), and printing the preamble below the grid.
+- The "Inksaver" printing option moves up to go to the top line in the
+  printing panel.
+- Instead of specifying just a single common margin, you can now specify
+  four numbers (all in inches), for the top/right/bottom/left margins,
+  respectively. You can also specify just 1 or 2 or 3 numbers (missing
+  values will be copied from their symmetric counterparts, and if that's
+  missing too, then from the last available value).
+- Add options to selectively exclude any of these elements from printing:
+  title, setter, preamble, explanations, copyright, questions.
+- Add textarea inputs to allow specifying a header and/or a footer. These
+  can be arbitrary HTML snippets. They get stuffed inside DIVs at the beginning
+  and end, respectively.
+- Make QR-code location choices be "bottom-right of the page" and
+  "bottom-left of the page." (killing the "to the right of the preamble"
+  option).
+- Bug-fix: if a clue panel is completely emptied out during printing
+  (because of balancing heights), then hide it, so that it does not add
+  a vertical margin.
+- In "only-grid" mode, print the copyright string under the grid, to
+  the right.
+
+### Minor Version: Exolve v1.57.5: June 21, 2024
+
+- Replace the deprecated googlecharts QR-code web service with quickchart.io.
+
+### Minor Version: Exolve v1.57.4: June 4, 2024
+
+- Add links to the new discussion group
+  ["Exolve-Exet-Etc"](https://groups.google.com/g/exolve-exet-etc)
+  to the documentation as well as the Exolve info panel.
+- Change these link anchors to be hyphenated: "Report-bug" and
+  "Exolve-on-GitHub" to improve readability. Add hover-text for
+  "Report-bug".
+
+### Minor Version: Exolve v1.57.3: May 4, 2024
+
+- Same as 1.57.2, but for xlv-button: use css width 'inherit', to
+  override weird default button styling in some blogs.
+
+### Minor Version: Exolve v1.57.2: May 4, 2024
+
+- Make xlv-small-button use css width 'inherit', to override
+  weird default button styling in some blogs.
+
+### Minor Version: Exolve v1.57.1: May 2, 2024
+
+- On Firefox, innerText can create spurious newlines as `\n<br>` in
+  the HTML becomes `\n\n`. This created weird looking text from
+  'Email notes'. Fixed by replacing consecutinve newlines with a single
+  one, in the 'Email notes' code.
+
+### Version: Exolve v1.57: May 1, 2024
+
+- Allow one or more hints to be added to any clue. The hints can be
+  progressively revealed when a clue is the current clue above the grid,
+  by clicking on a lightbulb that shows up if there are any unrevealed
+  hints left.
+- Clicking on the hints dismisses them.
+- The styling can be customized through exolve-relabel and exolve-colour.
+
 ### Minor Version: Exolve v1.56.7: April 9, 2024
 
 - Call getElementsByClassName() only on the current puzzle element, instead
